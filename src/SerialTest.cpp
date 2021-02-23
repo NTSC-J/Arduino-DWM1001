@@ -8,9 +8,6 @@ int main()
     printf("Initializing port\n");
     auto dev = SerialDWM1001("/dev/ttyACM0");
 
-    //printf("\nnop\n");
-    //dev.nop();
-
     printf("\nreset\n");
     dev.reset();
 

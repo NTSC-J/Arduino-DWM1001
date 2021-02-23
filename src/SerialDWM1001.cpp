@@ -74,11 +74,12 @@ DWM1001Error SerialDWM1001::write_tlv(
     }
     printf("\n");
 #endif
-    assert(1 == check(sp_blocking_write(port, &type, 1, timeout)));
-    assert(1 == check(sp_blocking_write(port, &length, 1, timeout)));
-    if (length != 0) {
-        assert(length == check(sp_blocking_write(port, value, length, timeout)));
-    }
+    uint8_t buf[256];
+    buf[0] = type;
+    buf[1] = length;
+    memcpy(buf + 2, value, length);
+
+    assert(length + 2 == check(sp_blocking_write(port, buf, length + 2, timeout)));
     return DWM1001Error::Ok;
 }
 
@@ -105,7 +106,7 @@ DWM1001Error SerialDWM1001::read_tlv(
 #endif
     {
         uint8_t value_[256];
-        check(sp_blocking_write(port, value_, *length, timeout));
+        check(sp_blocking_read(port, value_, *length, timeout));
         memcpy(value, value_, *length);
     }
 #ifdef DEBUG
