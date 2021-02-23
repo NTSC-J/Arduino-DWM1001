@@ -9,6 +9,6 @@ LDFLAGS = -lserialport
 
 all: $(DEST)
 
-$(DEST): src/DWM1001.cpp src/SerialDWM1001.cpp src/SerialTest.cpp
+$(DEST): src/DWM1001.cpp src/SerialDWM1001.cpp src/SerialTest.cpp src/TestDWM1001.cpp
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
 
