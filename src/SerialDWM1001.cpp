@@ -58,10 +58,12 @@ SerialDWM1001::SerialDWM1001(char const *const portname, int32_t timeout) :
 #endif
 }
 
-void SerialDWM1001::nop()
+SerialDWM1001::~SerialDWM1001()
 {
-    uint8_t dummy_bytes[] = {0xff, 0xff, 0xff};
-    check(sp_blocking_write(port, dummy_bytes, 3, timeout));
+#ifdef DEBUG
+    printf("Closing port\n");
+#endif
+    check(sp_close(port));
 }
 
 DWM1001Error SerialDWM1001::write_tlv(

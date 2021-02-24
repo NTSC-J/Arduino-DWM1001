@@ -1,14 +1,15 @@
 # Makefile for test binary, not for use with Arduino!
 
 DEST := test
+SRC := $(wildcard ../src/*.cpp src/*.cpp)
 CXX ?= clang++
 CXXFLAGS = -std=c++17 -g -Og -DDEBUG
+INCLUDES = -I../src
 LDFLAGS = -lserialport
 
 .PHONY: clean
 
 all: $(DEST)
 
-$(DEST): src/DWM1001.cpp src/SerialDWM1001.cpp src/SerialTest.cpp src/TestDWM1001.cpp
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
-
+$(DEST): $(SRC)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(LDFLAGS) $^ -o $@

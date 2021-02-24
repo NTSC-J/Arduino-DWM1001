@@ -8,8 +8,8 @@
 class SerialDWM1001 : public DWM1001 {
 public:
     SerialDWM1001(char const *const portname, int32_t timeout = 10000);
+    ~SerialDWM1001();
 
-    void nop();
     DWM1001Error write_tlv(
         uint8_t const type, uint8_t const length, uint8_t const* const value);
     DWM1001Error read_tlv(

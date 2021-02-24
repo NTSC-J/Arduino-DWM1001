@@ -241,7 +241,7 @@ DWM1001Error DWM1001::usr_data_read(uint8_t *const data, uint8_t *const length)
     read_tlv(&type, length, data);
     // assert(type == DWM1001TLV::USR_DATA);
 
-    return DWM1001Error::Ok;
+    return err;
 }
 
 DWM1001Error DWM1001::usr_data_write(uint8_t const *const data, uint8_t const length, bool overwrite)

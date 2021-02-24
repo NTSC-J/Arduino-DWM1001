@@ -183,7 +183,6 @@ public:
     //DWM1001Error backhaul_xfer(...);
 
     /* transport-dependent features are declared virtual here */
-    void virtual nop() = 0;
     DWM1001Error virtual write_tlv(
         uint8_t const type, uint8_t const length, uint8_t const* const value) = 0;
     DWM1001Error virtual read_tlv(

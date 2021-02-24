@@ -2,20 +2,17 @@
 
 #include "SerialDWM1001.h"
 #include <cstdio>
-#include <thread>
-#include <chrono>
 
 int main()
 {
     printf("Initializing port\n");
     auto dev = SerialDWM1001("/dev/ttyACM0");
 
-/*
     printf("\npos_get\n");
-    auto newpos = Position();
-    dev.pos_get(&newpos);
-    printf("pos: (%d, %d, %d)\n", newpos.x, newpos.y, newpos.z);
-*/
+    auto pos = Position();
+    dev.pos_get(&pos);
+    printf("pos: (%d, %d, %d), qf = %d\n", pos.x, pos.y, pos.z, pos.qf);
+
     printf("\nupd_rate_get\n");
     uint16_t ur, urs;
     dev.upd_rate_get(&ur, &urs);
@@ -34,10 +31,12 @@ int main()
     dev.nodeid_get(&nodeid);
     printf("nodeid: 0x%016lx\n", nodeid);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 2; i++) {
         printf("gpio_value_toggle\n");
         dev.gpio_value_toggle(GPIOIdx::GPIO14);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        bool v;
+        dev.gpio_value_get(GPIOIdx::GPIO14, &v);
+        printf("gpio_value_get: %d\n", v);
     }
 
     return 0;
