@@ -1,5 +1,10 @@
 #include "DWM1001.h"
+
+#ifdef ARDUINO
+#include <string.h>
+#else
 #include <cstring>
+#endif
 
 #pragma region utility_functions
 void static uint16_to_le_bytes(uint32_t in, uint8_t *const out)

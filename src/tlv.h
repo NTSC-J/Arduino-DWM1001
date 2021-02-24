@@ -1,5 +1,10 @@
 #pragma once
+
+#ifdef ARDUINO
+#include <stdint.h>
+#else
 #include <cstdint>
+#endif
 
 class DWM1001TLV {
 public:

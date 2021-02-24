@@ -1,3 +1,5 @@
+#ifndef ARDUINO
+
 #include "TestDWM1001.h"
 #include <cstdio>
 
@@ -22,3 +24,5 @@ DWM1001Error TestDWM1001::read_tlv(uint8_t *const type, uint8_t *const length, u
     printf("read_tlv was called\n");
     return DWM1001Error::Ok;
 }
+
+#endif // ifndef ARDUINO

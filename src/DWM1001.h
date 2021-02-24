@@ -1,6 +1,11 @@
 #pragma once
 #include "tlv.h"
+
+#ifdef ARDUINO
+#include <stdint.h>
+#else
 #include <cstdint>
+#endif
 
 enum class DWM1001Error : int8_t {
     // returned from functions
@@ -113,9 +118,9 @@ struct IntCfg {
  * @brief stationary sensitivity
  */
 enum class StnrySensitivity : uint8_t {
-    LOW = 0, // 512 mg
-    NORMAL = 1, // 2048 mg
-    HIGH = 2 // 4064 mg
+    SS_LOW = 0, // 512 mg ("LOW" conflicts with a macro in Arduino.h)
+    SS_NORMAL = 1, // 2048 mg
+    SS_HIGH = 2 // 4064 mg ("HIGH" conglicts with a macro in Arduino.h)
 };
 
 /* TODO evt_id_map */
