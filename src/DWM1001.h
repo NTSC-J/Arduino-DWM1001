@@ -7,6 +7,12 @@
 #include <cstdint>
 #endif
 
+void uint16_to_le_bytes(uint32_t in, uint8_t *const out);
+void int32_to_le_bytes(int32_t in, uint8_t *const out);
+uint16_t le_bytes_to_uint16(uint8_t const *const bytes);
+int32_t le_bytes_to_int32(uint8_t const *const bytes);
+uint64_t le_bytes_to_uint64(uint8_t const *const bytes);
+
 enum class DWM1001Error : int8_t {
     // returned from functions
     Ok = 0,
@@ -125,6 +131,7 @@ enum class StnrySensitivity : uint8_t {
 
 /* TODO evt_id_map */
 /* TODO NodeCfg */
+
 struct Status {
     bool loc_ready; // new location data are ready
     bool uwbmac_joined; // node is connected to UWB network
