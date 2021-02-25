@@ -4,6 +4,9 @@
 #include <string.h>
 #else
 #include <cstring>
+#ifdef DEBUG
+#include <cstdio>
+#endif
 #endif
 
 DWM1001Error DWM1001::pos_set(Position const& position)
@@ -56,6 +59,19 @@ DWM1001Error DWM1001::cfg_tag_set(TagCfg const& cfg)
     write_tlv(DWM1001TLV::CFG_TN_SET, 2, arg);
 
     return read_err();
+}
+
+DWM1001Error DWM1001::cfg_get(NodeCfg *const cfg)
+{
+    write_tlv(DWM1001TLV::CFG_GET, 0, nullptr);
+    auto err = read_err();
+
+    uint8_t type, length, value[256];
+    read_tlv(&type, &length, value);
+    // assert(type == DWM1001TLV::CFG && length == 2);
+    *cfg = NodeCfg::from_bytes(value);
+
+    return err;
 }
 
 DWM1001Error DWM1001::sleep()
@@ -241,7 +257,17 @@ DWM1001Error DWM1001::read_err()
     uint8_t type, length, buf[255];
     read_tlv(&type, &length, buf);
     // assert(type == DWM1001TLV::RET_VAL && length == 1);
-    return static_cast<DWM1001Error>(buf[0]);
+    auto err = static_cast<DWM1001Error>(buf[0]);
+
+#ifdef DEBUG
+#ifndef ARDUINO
+    if (err != DWM1001Error::Ok) {
+        printf("ERROR: %d\n", (uint8_t)err);
+    }
+#endif
+#endif
+
+    return err;
 }
 
 Position DWM1001::read_pos_xyz()

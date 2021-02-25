@@ -168,6 +168,8 @@ struct NodeCfg {
     bool ble_en;
     bool fw_upd_en;
     uint8_t uwb_mode;
+
+    static NodeCfg from_bytes(uint8_t const *const bytes); // 2 bytes
 };
 
 struct Status {
@@ -194,7 +196,7 @@ public:
     DWM1001Error upd_rate_get(uint16_t *const ur, uint16_t *const urs);
     DWM1001Error cfg_tag_set(TagCfg const& cfg);
     //DWM1001Error cfg_anchor_set(AnchorCfg const& cfg);
-    //DWM1001Error cfg_get(NodeCfg *const cfg);
+    DWM1001Error cfg_get(NodeCfg *const cfg);
     DWM1001Error sleep();
     //DWM1001Error anchor_list_get(AnchorList *const list);
     //DWM1001Error loc_get(LocData *const loc);
