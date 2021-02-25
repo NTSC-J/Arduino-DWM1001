@@ -7,6 +7,8 @@
 #include <cstdint>
 #endif
 
+constexpr uint8_t DWM_USR_DATA_LEN_MAX = 34;
+
 void uint16_to_le_bytes(uint32_t in, uint8_t *const out);
 void int32_to_le_bytes(int32_t in, uint8_t *const out);
 uint16_t le_bytes_to_uint16(uint8_t const *const bytes);
@@ -36,6 +38,28 @@ struct Position {
 
     void to_bytes(uint8_t *const bytes) const; // 13 bytes
     static Position from_bytes(uint8_t const *const bytes);
+};
+
+struct AnchorList {
+    uint8_t cnt; // number of anchors
+    struct {
+        uint16_t addr; // UWB address
+        Position position; // qf doesn't mean anything
+        int8_t rssi;
+        uint8_t seat; // seat number
+        bool neighbor_network;
+    } anchors[30];
+};
+
+struct LocData {
+    Position position; // position of the current node
+    uint8_t dist_cnt; // number of distances to the anchors
+    struct {
+        uint8_t addr[8]; // public UWB address of the anchor
+        uint32_t dist; // distance
+        uint8_t qf; // quality factor
+        Position an_pos; // position of the anchor
+    } dist[15];
 };
 
 /*
@@ -130,7 +154,21 @@ enum class StnrySensitivity : uint8_t {
 };
 
 /* TODO evt_id_map */
-/* TODO NodeCfg */
+
+struct NodeCfg {
+    bool mode;
+    bool initiator;
+    bool bridge;
+    bool stnry_en;
+    uint8_t meas_mode; // 0 - TWR, 1-3 not supported
+    bool low_power_en;
+    bool loc_engine_en;
+    bool enc_en;
+    bool led_en;
+    bool ble_en;
+    bool fw_upd_en;
+    uint8_t uwb_mode;
+};
 
 struct Status {
     bool loc_ready; // new location data are ready
@@ -162,8 +200,8 @@ public:
     //DWM1001Error loc_get(LocData *const loc);
     //DWM1001Error baddr_set(Baddr const& baddr);
     //DWM1001Error baddr_get(Baddr *const baddr);
-    //DWM1001Error stnry_cfg_set(StnrySensitivity const& sensitivity);
-    //DWM1001Error stnry_cfg_get(StnrySensitiviry *const sensitivity);
+    DWM1001Error stnry_cfg_set(StnrySensitivity const& sensitivity);
+    DWM1001Error stnry_cfg_get(StnrySensitivity *const sensitivity);
     DWM1001Error factory_reset();
     DWM1001Error reset();
     //DWM1001Error ver_get(Version *const ver);

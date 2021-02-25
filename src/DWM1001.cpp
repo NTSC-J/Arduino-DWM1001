@@ -65,6 +65,26 @@ DWM1001Error DWM1001::sleep()
     return read_err();
 }
 
+DWM1001Error DWM1001::stnry_cfg_set(StnrySensitivity const& sentitivity)
+{
+    write_tlv(DWM1001TLV::STNRY_CFG_SET, 1, (uint8_t *)&sentitivity);
+
+    return read_err();
+}
+
+DWM1001Error DWM1001::stnry_cfg_get(StnrySensitivity *const sensitivity)
+{
+    write_tlv(DWM1001TLV::STNRY_CFG_GET, 0, nullptr);
+
+    auto err = read_err();
+    uint8_t type, length, buf[256];
+    read_tlv(&type, &length, buf);
+    // assert(type == DWM1001TLV::STNRY_CFG && length == 1);
+    *sensitivity = (StnrySensitivity)buf[0];
+
+    return err;
+}
+
 DWM1001Error DWM1001::factory_reset()
 {
     write_tlv(DWM1001TLV::FAC_RESET, 0, nullptr);
@@ -95,9 +115,9 @@ DWM1001Error DWM1001::usr_data_read(uint8_t *const data, uint8_t *const length)
 
 DWM1001Error DWM1001::usr_data_write(uint8_t const *const data, uint8_t const length, bool overwrite)
 {
-    uint8_t length_ = length + 1, data_[35];
-    memcpy(data_, data, length);
-    data_[length] = (uint8_t)overwrite;
+    uint8_t length_ = length + 1, data_[DWM_USR_DATA_LEN_MAX + 1];
+    data_[0] = (uint8_t)overwrite;
+    memcpy(data_ + 1, data, length);
     write_tlv(DWM1001TLV::USR_DATA_WRITE, length_, data_);
 
     return read_err();
