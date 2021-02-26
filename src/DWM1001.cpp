@@ -61,6 +61,15 @@ DWM1001Error DWM1001::cfg_tag_set(TagCfg const& cfg)
     return read_err();
 }
 
+DWM1001Error DWM1001::cfg_anchor_set(AnchorCfg const& cfg)
+{
+    uint8_t arg[2];
+    cfg.to_bytes(arg);
+    write_tlv(DWM1001TLV::CFG_AN_SET, 2, arg);
+
+    return read_err();
+}
+
 DWM1001Error DWM1001::cfg_get(NodeCfg *const cfg)
 {
     write_tlv(DWM1001TLV::CFG_GET, 0, nullptr);

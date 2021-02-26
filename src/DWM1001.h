@@ -124,7 +124,17 @@ struct TagCfg {
     void to_bytes(uint8_t *const bytes) const; // 2 bytes
 };
 
-/* TODO AnchorCfg */
+struct AnchorCfg {
+    bool initiator; // initiator role enabled?
+    bool bridge; // bridge role enabled?
+    bool enc_en; // encryption enabled?
+    bool led_en; // general purpose LEDs enabled?
+    bool ble_en; // Bluetooth enabled?
+    uint8_t uwb_mode; // UWB operation mode. 0 - offline, 1 - passive, 2 - active;
+    bool fw_upd_en; // firmware update enabled?
+
+    void to_bytes(uint8_t *const bytes) const; // 2 bytes, 2nd byte unused
+};
 
 /*
  * @brief interrupt configuration
@@ -195,7 +205,7 @@ public:
     DWM1001Error upd_rate_set(uint16_t const ur, uint16_t const urs);
     DWM1001Error upd_rate_get(uint16_t *const ur, uint16_t *const urs);
     DWM1001Error cfg_tag_set(TagCfg const& cfg);
-    //DWM1001Error cfg_anchor_set(AnchorCfg const& cfg);
+    DWM1001Error cfg_anchor_set(AnchorCfg const& cfg);
     DWM1001Error cfg_get(NodeCfg *const cfg);
     DWM1001Error sleep();
     //DWM1001Error anchor_list_get(AnchorList *const list);
