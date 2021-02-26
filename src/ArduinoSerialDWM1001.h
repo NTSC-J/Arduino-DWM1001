@@ -13,7 +13,7 @@ public:
         uint8_t *const type, uint8_t *const length, uint8_t *const value);
 
 private:
-    HardwareSerial serial;
+    HardwareSerial& serial;
 };
 
 #endif // ifdef ARDUINO

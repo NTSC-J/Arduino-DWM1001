@@ -5,23 +5,15 @@
 #include <SPI.h>
 
 /*
- * @brief For use without DRDY
- */
-ArduinoSPIDWM1001::ArduinoSPIDWM1001(uint8_t pin_cs) :
-    pin_cs(pin_cs), pin_drdy(0xff)
-{
-    pinMode(pin_cs, OUTPUT);
-    digitalWrite(pin_cs, HIGH);
-}
-
-/*
- * @brief Use with DRDY
+ * @brief Initialize pins.
  */
 ArduinoSPIDWM1001::ArduinoSPIDWM1001(uint8_t pin_cs, uint8_t pin_drdy) :
     pin_cs(pin_cs), pin_drdy(pin_drdy)
 {
     pinMode(pin_cs, OUTPUT);
-    pinMode(pin_drdy, INPUT);
+    if (pin_drdy != 0xff) {
+        pinMode(pin_drdy, INPUT);
+    }
     digitalWrite(pin_cs, HIGH); // active low
 }
 

@@ -11,7 +11,7 @@ DWM1001Error ArduinoSerialDWM1001::write_tlv(uint8_t const type, uint8_t const l
 {
     serial.write(&type, 1);
     serial.write(&length, 1);
-    serial.write(value, length);
+    serial.write(value, (size_t)length);
     serial.flush();
 
     return DWM1001Error::Ok; // FIXME
@@ -21,7 +21,7 @@ DWM1001Error ArduinoSerialDWM1001::read_tlv(uint8_t *const type, uint8_t *const 
 {
     serial.readBytes(type, 1);
     serial.readBytes(length, 1);
-    serial.readBytes(value, langth);
+    serial.readBytes(value, (size_t)length);
 
     return DWM1001Error::Ok; // FIXME
 }
