@@ -16,13 +16,15 @@ int32_t le_bytes_to_int32(uint8_t const *const bytes);
 uint64_t le_bytes_to_uint64(uint8_t const *const bytes);
 
 enum class DWM1001Error : int8_t {
-    // returned from functions
+    // returned from device
     Ok = 0,
     Err = 1,
     Internal = 2,
     Param = 3,
     Busy = 4,
-    Permit = 5
+    Permit = 5,
+    // returned from this library
+    Timeout = -10,
 };
 
 /*
@@ -240,11 +242,21 @@ public:
     //DWM1001Error backhaul_xfer(...);
 
     /* transport-dependent features are declared virtual here */
-    DWM1001Error virtual write_tlv(
+    void virtual write_tlv(
         uint8_t const type, uint8_t const length, uint8_t const* const value) = 0;
-    DWM1001Error virtual read_tlv(
-        uint8_t *const type, uint8_t *const length, uint8_t *const value) = 0;
+    DWM1001Error virtual read_all_resp() = 0;
 
-    DWM1001Error read_err();
-    Position read_pos_xyz();
+    DWM1001Error parse_err(uint8_t page = 0);
+    Position parse_pos_xyz(uint8_t page = 1);
+
+protected:
+    uint8_t constexpr static MAX_TLV_PAGES = 2;
+    uint8_t last_tlv_data[MAX_TLV_PAGES][256];
+    void inline clear_tlv_data() {
+        for (uint8_t page = 0; page < MAX_TLV_PAGES; page++) {
+            for (uint8_t byte = 0; byte != 0; byte++) {
+                last_tlv_data[page][byte] = 0;
+            }
+        }
+    }
 };

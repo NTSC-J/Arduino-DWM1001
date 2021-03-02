@@ -1,8 +1,6 @@
 #ifdef ARDUINO
 
 #include "ArduinoSPIDWM1001.h"
-#include <Arduino.h>
-#include <SPI.h>
 
 /*
  * @brief Initialize pins.
@@ -11,10 +9,11 @@ ArduinoSPIDWM1001::ArduinoSPIDWM1001(uint8_t pin_cs, uint8_t pin_drdy) :
     pin_cs(pin_cs), pin_drdy(pin_drdy)
 {
     pinMode(pin_cs, OUTPUT);
-    if (pin_drdy != 0xff) {
+    if (pin_drdy != NO_DRDY) {
         pinMode(pin_drdy, INPUT);
     }
     digitalWrite(pin_cs, HIGH); // active low
+    SPI.begin();
 }
 
 /*
@@ -22,7 +21,7 @@ ArduinoSPIDWM1001::ArduinoSPIDWM1001(uint8_t pin_cs, uint8_t pin_drdy) :
  */
 void ArduinoSPIDWM1001::nop()
 {
-    SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE0));
+    SPI.beginTransaction(SPI_SETTINGS);
     digitalWrite(pin_cs, LOW);
     delayMicroseconds(50);
     for (int i = 0; i < 3; i++) {
@@ -32,15 +31,15 @@ void ArduinoSPIDWM1001::nop()
     SPI.endTransaction();
 }
 
-DWM1001Error ArduinoSPIDWM1001::write_tlv(
+void ArduinoSPIDWM1001::write_tlv(
     uint8_t const type,
     uint8_t const length,
     uint8_t const* const value)
 {
-    SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE0));
+    SPI.beginTransaction(SPI_SETTINGS);
     // at least 35 us wide pulse has to be generated on CS pin to wakeup device
     digitalWrite(pin_cs, LOW); // active low
-    delayMicroseconds(50);
+    delayMicroseconds(35);
 
     SPI.transfer(type);
     SPI.transfer(length);
@@ -50,45 +49,47 @@ DWM1001Error ArduinoSPIDWM1001::write_tlv(
 
     digitalWrite(pin_cs, HIGH);
     SPI.endTransaction();
-
-    return DWM1001Error::Ok;
 }
 
-DWM1001Error ArduinoSPIDWM1001::read_tlv(
-    uint8_t *const type,
-    uint8_t *const length,
-    uint8_t *const value)
+DWM1001Error ArduinoSPIDWM1001::read_all_resp()
 {
-    if (pin_drdy != 0xff) {
-        while (digitalRead(pin_drdy) == LOW)
+    clear_tlv_data();
+
+    if (pin_drdy != NO_DRDY) {
+        while (digitalRead(pin_drdy) == LOW) {
             delay(1);
+        }
     }
 
-    SPI.beginTransaction(SPISettings(8000000, MSBFIRST, SPI_MODE0));
-    digitalWrite(pin_cs, LOW);
-    delayMicroseconds(50);
+    SPI.beginTransaction(SPI_SETTINGS);
 
-    uint8_t size, num;
-    while (true) {
+    uint8_t size = 0, read = 0, page = 0;
+    uint16_t tries = 0;
+    while (!size) {
+        digitalWrite(pin_cs, LOW);
         size = SPI.transfer(0xff);
-        num = SPI.transfer(0xff);
-        delay(1);
-        if (size || num)
-            break;
-    }
-    // assert(size == 1 && num == length + 2);
-    // ↑this fails when using backhaul_xfer
-    
-    *type = SPI.transfer(0xff);
-    *length = SPI.transfer(0xff);
-    for (uint8_t i = 0; i < *length; i++) {
-        value[i] = SPI.transfer(0xff);
+        digitalWrite(pin_cs, HIGH);
+        tries++;
+        if (MAX_RETRY < tries) {
+            return DWM1001Error::Timeout;
+        }
     }
 
+    digitalWrite(pin_cs, LOW);
+    while (read < size) {
+        auto data = last_tlv_data[page];
+        data[0] = SPI.transfer(0xff); // type
+        data[1] = SPI.transfer(0xff); // length
+        read += 2;
+        for (int i = 0; i < data[1]; i++) {
+            data[i + 2] = SPI.transfer(0xff);
+            read++;
+        }
+        page++;
+    }
     digitalWrite(pin_cs, HIGH);
-    SPI.endTransaction();
 
-    return DWM1001Error::Ok;
+    SPI.endTransaction();
 }
 
 #endif // ifdef ARDUINO

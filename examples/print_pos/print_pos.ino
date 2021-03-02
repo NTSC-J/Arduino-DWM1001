@@ -1,8 +1,6 @@
 #include <ArduinoSPIDWM1001.h>
 
-constexpr uint8_t PIN_CS = 1;
-constexpr uint8_t PIN_DRDY = 2;
-ArduinoSPIDWM1001 dev(PIN_CS, PIN_DRDY); // DRDY is optional
+ArduinoSPIDWM1001 dev(10);
 
 /*
  * Set up the device as a tag node.
@@ -12,18 +10,17 @@ ArduinoSPIDWM1001 dev(PIN_CS, PIN_DRDY); // DRDY is optional
 void setup_persistent()
 {
   // Configure the node as tag.
-  TagCfg cfg = {
-    .stnry_en = true,
-    .low_power_en = false,
-    .meas_mode = 0, // TWR
-    .loc_engine_en = true,
-    .enc_en = false,
-    .led_en = true,
-    .ble_en = true,
-    .uwb_mode = 2, // active
-    .fw_upd_en = false
-  };
-  dev.cfg_tag_set(cfg);
+  dev.cfg_tag_set({
+    .stnry_en = true, // enable stationary detection
+    .low_power_en = false, // disable low power mode
+    .meas_mode = 0, // measure mode: Two-Way Ranging
+    .loc_engine_en = true, // enable location engine
+    .enc_en = false, // disable encryption
+    .led_en = true, // enable LEDs
+    .ble_en = true, // enable Bluetooth Low-Energy
+    .uwb_mode = 2, // UWB mode: active
+    .fw_upd_en = false // disable firmware update
+  });
   
   // How often the tag updates its location (times 100 ms)
   // 1st argument: while tag is moving
@@ -38,11 +35,18 @@ void setup_persistent()
 }
 
 void setup() {
-  Serial.begin(115200); // console
+  Serial.begin(57600); // console
+  Serial.println("init");
   setup_persistent();
 }
 
 void loop() {
+  Serial.print("panid: ");
+  uint16_t panid;
+  dev.panid_get(&panid);
+  Serial.println(panid, HEX);
+  delay(500);
+  Serial.print("pos: ");
   Position pos;
   dev.pos_get(&pos);
   Serial.print("(");
@@ -54,4 +58,5 @@ void loop() {
   Serial.print("), qf = ");
   Serial.print(pos.qf);
   Serial.println();
+  delay(500);
 }
