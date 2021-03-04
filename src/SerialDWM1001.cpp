@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <cassert>
+#include <chrono>
+#include <thread>
 
 SerialDWM1001::SerialDWM1001(char const *const portname, int32_t timeout) :
     timeout(timeout)
@@ -66,7 +68,7 @@ SerialDWM1001::~SerialDWM1001()
     check(sp_close(port));
 }
 
-DWM1001Error SerialDWM1001::write_tlv(
+void SerialDWM1001::write_tlv(
         uint8_t const type, uint8_t const length, uint8_t const* const value)
 {
 #ifdef DEBUG
@@ -82,70 +84,73 @@ DWM1001Error SerialDWM1001::write_tlv(
     memcpy(buf + 2, value, length);
 
     assert(length + 2 == check(sp_blocking_write(port, buf, length + 2, timeout)));
-    return DWM1001Error::Ok;
 }
 
-DWM1001Error SerialDWM1001::read_tlv(
-        uint8_t *const type, uint8_t *const length, uint8_t *const value)
+DWM1001Error SerialDWM1001::read_all_resp()
 {
-    // need to do this because the 2nd argument of sp_blocking_read
-    // doesn't have the const qualifier
-    {
-        uint8_t type_;
-        check(sp_blocking_read(port, &type_, 1, timeout));
-        *type = type_;
-    }
 #ifdef DEBUG
-    printf("read_tlv: type = 0x%02x, ", *type);
+    printf("read_all_resp:\n");
 #endif
-    {
-        uint8_t length_;
-        check(sp_blocking_read(port, &length_, 1, timeout));
-        *length = length_;
+    clear_tlv_data();
+    uint32_t tries = 0;
+    uint32_t constexpr MAX_TRIES = 1000;
+    while (check(sp_input_waiting(port)) == 0 && tries < MAX_TRIES) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        tries++;
     }
-#ifdef DEBUG
-    printf("length = %u, value = ", *length);
-#endif
-    {
-        uint8_t value_[256];
-        check(sp_blocking_read(port, value_, *length, timeout));
-        memcpy(value, value_, *length);
-    }
-#ifdef DEBUG
-    for (uint8_t i = 0; i < *length; i++) {
-        printf("%02x ", value[i]);
-    }
-    printf("\n");
-#endif
 
-    return DWM1001Error::Ok;
+    uint8_t page = 0;
+    while (true) {
+        if (check(sp_input_waiting(port)) == 0) {
+#ifdef DEBUG
+            printf("read all input\n");
+#endif
+            return DWM1001Error::Ok;
+        }
+        auto data = last_tlv_data[page];
+        check(sp_blocking_read(port, data, 2, timeout)); // type, length
+        if (data[1] != 0) {
+            check(sp_blocking_read(port, data + 2, data[1], timeout)); // value
+        }
+#ifdef DEBUG
+        printf("read page %d: ", page);
+        for (uint8_t i = 0; i < data[1] + 2; i++) {
+            printf("%02x ", data[i]);
+        }
+        printf("\n");
+#endif
+        page++;
+    }
 }
 
-sp_return SerialDWM1001::check(sp_return result)
+sp_return SerialDWM1001::check_(sp_return result, char const* file, int line)
 {
-    switch (result) {
-    case SP_ERR_ARG:
-        printf("Error: Invalid argument.\n");
-        abort();
+    if (result < 0) {
+        printf("In %s at line %d:\n", file, line);
+        switch (result) {
+        case SP_ERR_ARG:
+            printf("Error: Invalid argument.\n");
+            abort();
 
-    case SP_ERR_FAIL: {
-        char *error_message = sp_last_error_message();
-        printf("Error: Failed: %s\n", error_message);
-        sp_free_error_message(error_message);
-        abort();
-    }
+        case SP_ERR_FAIL: {
+            char *error_message = sp_last_error_message();
+            printf("Error: Failed: %s\n", error_message);
+            sp_free_error_message(error_message);
+            abort();
+        }
 
-    case SP_ERR_SUPP:
-        printf("Error: Not supported.\n");
-        abort();
+        case SP_ERR_SUPP:
+            printf("Error: Not supported.\n");
+            abort();
 
-    case SP_ERR_MEM:
-        printf("Error: Couldn't allocate memory.\n");
-        abort();
+        case SP_ERR_MEM:
+            printf("Error: Couldn't allocate memory.\n");
+            abort();
 
-    case SP_OK:
-    default:
-        break;
+        default:
+            printf("Unknown error.\n");
+            break;
+        }
     }
     return result;
 }

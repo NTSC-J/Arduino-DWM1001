@@ -2,8 +2,8 @@
 
 DEST := test
 SRC := $(wildcard ../src/*.cpp src/*.cpp)
-CXX ?= clang++
-CXXFLAGS = -std=c++17 -g -Og -DDEBUG
+CXX := clang++
+CXXFLAGS := -std=c++17 -g -Og -DDEBUG
 INCLUDES = -I../src
 LDFLAGS = -lserialport
 
