@@ -108,10 +108,31 @@ void test_pos()
     }
 }
 
+void test_iot_dl()
+{
+    auto dev = SerialDWM1001("/dev/ttyACM0");
+    while (true) {
+        Status status;
+        dev.status_get(&status);
+        if (status.usr_data_ready) {
+            uint8_t dl_data[DWM_USR_DATA_LEN_MAX + 1], dl_data_len;
+            dev.usr_data_read(dl_data, &dl_data_len);
+            printf("got usr_data: ");
+            for (uint8_t i = 0; i < dl_data_len; i++) {
+                printf("%02x ", dl_data[i]);
+            }
+            dl_data[dl_data_len] = 0x00;
+            printf("(%s)\n", (char *)dl_data);
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+}
+
 int main()
 {
     test_read("/dev/ttyACM0");
     test_gpio();
     test_pos();
+    test_iot_dl();
     return 0;
 }
