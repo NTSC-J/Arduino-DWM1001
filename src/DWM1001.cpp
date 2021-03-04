@@ -159,7 +159,7 @@ DWM1001Error DWM1001::usr_data_read(uint8_t *const data, uint8_t *const length)
     auto type = d[0], *value = d + 2;
     *length = d[1];
     // assert(type == DWM1001TLV::USR_DATA);
-    memcpy(data, d, *length);
+    memcpy(data, value, *length);
 
     return parse_err();
 }
