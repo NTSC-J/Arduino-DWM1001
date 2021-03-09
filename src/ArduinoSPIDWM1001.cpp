@@ -48,7 +48,7 @@ void ArduinoSPIDWM1001::write_tlv(
     }
 
     digitalWrite(pin_cs, HIGH);
-    SPI.endTransaction();
+    //SPI.endTransaction();
 }
 
 DWM1001Error ArduinoSPIDWM1001::read_all_resp()
@@ -61,18 +61,14 @@ DWM1001Error ArduinoSPIDWM1001::read_all_resp()
         }
     }
 
-    SPI.beginTransaction(SPI_SETTINGS);
+    //SPI.beginTransaction(SPI_SETTINGS);
 
     uint8_t size = 0, read = 0, page = 0;
-    uint16_t tries = 0;
     while (!size) {
         digitalWrite(pin_cs, LOW);
         size = SPI.transfer(0xff);
         digitalWrite(pin_cs, HIGH);
-        tries++;
-        if (MAX_RETRY < tries) {
-            return DWM1001Error::Timeout;
-        }
+        delay(1);
     }
 
     digitalWrite(pin_cs, LOW);
